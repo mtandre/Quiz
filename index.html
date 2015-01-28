@@ -1,0 +1,85 @@
+<!doctype html>
+<html class="no-js" lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>quiz</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          #quiz {max-width:660px; color:#2F2F2F;}
+          .question {margin:1rem 0 0 0;}
+
+          .options {list-style-type: none; margin:0; padding:0;}
+          .option {padding:0.5rem 0.5rem 0.5rem 0; margin:0.75rem 0 0 1rem; position:relative;} /*border-radius: 5px; border: 1px solid #2f2f2f; text-align: center;*/
+          .option:hover {cursor:pointer;}
+
+          .option .key {text-transform:uppercase;}
+          .option .results {text-align:right; height:100%; width:0%; background-color:#FF5A5B; position:absolute; top:0; left:0; z-index:-1; opacity:0.5;}
+          .option.correct .results {background-color:#07D073;}
+
+          .answered .correct:before {content:"\2713\0020"; color:#07D073; margin-left:-0.75rem;}
+          .answered .incorrect:before {content:"\2718\0020"; color:#FF5A5B; margin-left:-0.75rem;}
+        </style>
+    </head>
+    <body>
+        <div id="quiz"></div>
+
+        <script src="questions.js"></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/velocity/1.2.1/velocity.min.js"></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore.js"></script>
+
+        <!--
+        TEMPLATE: question
+        -->
+        <script id="questions-template" type="text/template">
+          <div class="questions">
+            <%= typeof(imgsrc)!== 'undefined' ?  '<img src="' + imgsrc + '">' : '' %>
+            <h5 class="question"><%= question %></h5>
+            <ul class="options">
+              <% _.each(options, function(value, key){ %>
+                <li class="option<% if(key === answer) print(' correct') %>">
+                  <div class="results"></div>
+                  <span class="key"><%= key %>: </span>
+                  <span class="value"><%= value %></span>
+                </li>
+              <% }) %>
+            </ul>
+          </div>
+        </script>
+
+        <script>
+          var quiz = document.getElementById('quiz');
+
+          // render questions
+          var template = _.template(document.getElementById('questions-template').innerHTML);
+          _.each(questions, function(question){
+            quiz.innerHTML = quiz.innerHTML + template(question);
+          });
+
+          // apply quiz functionality
+          var options = document.querySelectorAll('.option');
+          _.each(options,function(option) {
+            option.addEventListener('click', function(){
+              var el = this;
+              var parent = el.parentElement;
+
+              // mark answers
+              if (parent.className.indexOf('answered') === -1) {
+                parent.className += ' answered';
+                if (el.className.indexOf('correct') === -1) {
+                  el.className += ' incorrect';
+                }
+
+                // get and display user stats
+                _.each(parent.children, function(child) {
+                  var div = child.getElementsByTagName('div')[0];
+                  var random = Math.floor(Math.random() * 100) + 1;
+                  var percent = random + "%";
+                  Velocity(div, {width: percent}, {duration: 1000, delay: 150});
+                });
+              }
+            });
+          });
+        </script>
+    </body>
+</html>
