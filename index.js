@@ -1,6 +1,6 @@
-var open = require('open');
-var express = require('express');
 var http = require('http');
+var express = require('express');
+var open = require('open');
 
 var app = express();
 var httpServer = http.Server(app);
