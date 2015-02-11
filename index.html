@@ -6,9 +6,9 @@
         <title>quiz</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
-          #quiz {max-width:660px; margin:0 auto; color:#2F2F2F; border: 1px solid black; border-radius:5px; padding:0.75rem; overflow-y:auto; font-family:Georgia, 'Times New Roman', Times, serif;}
+          #quiz {max-width:660px; margin:0 auto; color:#2F2F2F; border:1px solid black; padding:0.75rem; border-radius:5px; overflow-y:auto; font-family:Georgia, 'Times New Roman', Times, serif;}
 
-          .button {outline:none; border:0; margin:1rem 0 0 0; padding:0.5rem 1rem; color:#444; text-transform:uppercase; font-size:1rem; border-radius:5px;}
+          .button {outline:none; display:inline-block; border:0; margin:0.75rem; padding:0.5rem 1rem; color:#444; text-transform:uppercase; font-size:0.85rem; letter-spacing:1px; border-radius:5px;}
           .button:hover {cursor:pointer;}
 
           #previous-question {float:left; display:none; background:lightblue;}
@@ -19,29 +19,28 @@
           .question {margin:0 0 0 10%; font-size:1.25rem; line-height:1.25rem; font-weight:normal;}
           .number {font-size:1.5rem; line-height:1.25rem; font-weight:bold; float:left;}
 
-          .main {width:65%; float:left; }
+          .main {width:62%; float:left; margin-bottom:0.75rem;}
 
-          .meta {width:32%; float:right;}
+          .meta {width:32%; float:right; border-left:1px solid #ccc; padding: 0 0 0.75rem 0.75rem;}
           .meta img {width:100%; height:auto;}
-          .meta .answer-details {opacity:0; transition: opacity 0.7s ease;}
+          .meta .answer-details {opacity:0; transition:opacity 0.7s ease; font-size:0.9rem; line-height:1.1rem;}
 
           .options {list-style-type: none; margin:0 0 0 10%; padding:0; font-family:Verdana, Arial, Helvetica, sans-serif;}
-          .option {padding:0.5rem 0; margin:0.75rem 0 0 0; border-radius: 5px; border: 1px solid #2f2f2f; text-align: center;}
+          .option {padding:0.5rem 0; margin:0.75rem 0 0 0; border-radius: 5px; background:#ddd; text-align: center;}
           .option:hover {cursor:pointer;}
           .answered .option:hover {cursor:default;}
 
-          .option .key {text-transform:uppercase;}
+          .answered .correct {transition:background-color 0.7s; background:#17b248; color:#fff;}
+          .answered .incorrect {transition:background-color 0s; background:#b50300; color:#fff;}
 
-          .answered .correct {transition:background-color 0.7s; background:palegreen;}
-          .answered .incorrect {transition:background-color 0s; background:lightcoral;}
+          .quiz-footer {overflow-y:auto; background:#eee; border-top:1px solid #ddd; margin:0 -0.75rem -0.75rem -0.75rem;}
 
           @media (max-width: 480px) {
             .main {float: none; width:100%;}
-            .meta {float: none; width:100%; margin-top:1rem;}
+            .meta {float: none; width:100%; border-left:0; border-top:1px solid #ccc; padding:0.75rem 0;}
             .options {margin-left:0;}
-            #previous-question, #next-question {float:none; width:100%;}
+            #previous-question, #next-question {float:none; width:90%;}
           }
-
 
         </style>
     </head>
@@ -60,9 +59,8 @@
               <h5 class="question"><%= question %></h5>
               <ul class="options">
                 <% _.each(options, function(value, key){ %>
-                  <li class="option<% if(key === answer) print(' correct') %>">
-                    <span class="key"><%= key %>: </span>
-                    <span class="value"><%= value %></span>
+                  <li class="option<% if(key == answer) print(' correct') %>">
+                    <span class="value" data-key="<%= key %>"><%= value %></span>
                   </li>
                 <% }) %>
               </ul>
@@ -73,7 +71,7 @@
                 <%= answerDetails %>
                 <a href="<%= articleUrl %>">Read more</a>
               </div>
-            <div>
+            </div>
           </div>
         </script>
         <script>  // browser >= ie9
@@ -87,7 +85,7 @@
           });
 
           //prev/next btns
-          quiz.innerHTML = quiz.innerHTML + '<button id="next-question" class="button">Next question</button><button id="previous-question" class="button">Previous question</button>';
+          quiz.innerHTML = quiz.innerHTML + '<div class="quiz-footer"><button id="next-question" class="button">Next question</button><button id="previous-question" class="button">Previous question</button></div>';
           var next = document.getElementById('next-question');
           var prev = document.getElementById('previous-question');
 
@@ -111,8 +109,8 @@
               var el;
               var ans = loadAnswer(currentQuestion);
               _.each(opts.getElementsByClassName("option"), function(opt) {
-                var key = opt.getElementsByClassName('key')[0].textContent.charAt(0);
-                if (key === ans) {
+                var key = opt.getElementsByClassName('value')[0].getAttribute('data-key');
+                if (key == ans) {
                   el = opt;
                 }
               });
@@ -148,8 +146,8 @@
               var el;
               var ans = loadAnswer(currentQuestion);
               _.each(opts.getElementsByClassName("option"), function(opt) {
-                var key = opt.getElementsByClassName('key')[0].textContent.charAt(0);
-                if (key === ans) {
+                var key = opt.getElementsByClassName('value')[0].getAttribute('data-key');
+                if (key == ans) {
                   el = opt;
                 }
               });
@@ -207,7 +205,7 @@
 
             //store answer
             if (!review) {
-              var ans = el.getElementsByClassName('key')[0].textContent.charAt(0);
+              var ans = el.getElementsByClassName('value')[0].getAttribute('data-key');
               storeAnswer(currentQuestion,ans);
             }
             //show answer details
@@ -240,8 +238,8 @@
             var el;
             var ans = loadAnswer(currentQuestion);
             _.each(opts.getElementsByClassName("option"), function(opt) {
-              var key = opt.getElementsByClassName('key')[0].textContent.charAt(0);
-              if (key === ans) {
+              var key = opt.getElementsByClassName('value')[0].getAttribute('data-key');
+              if (key == ans) {
                 el = opt;
               }
             });
