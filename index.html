@@ -8,24 +8,26 @@
         <style>
           #quiz {max-width:660px; margin:0 auto; color:#2F2F2F; border:1px solid black; padding:0.75rem; border-radius:5px; overflow-y:auto; font-family:Georgia, 'Times New Roman', Times, serif;}
 
-          .button {outline:none; display:inline-block; border:0; margin:0.75rem; padding:0.5rem 1rem; color:#444; text-transform:uppercase; font-size:0.85rem; letter-spacing:1px; border-radius:5px;}
+          .button {outline:none; display:inline-block; border:0; padding:0.5rem 1rem; color:#444; text-transform:uppercase; font-size:0.85rem; letter-spacing:1px; border-radius:5px;}
           .button:hover {cursor:pointer;}
 
-          #previous-question {float:left; display:none; background:lightblue;}
-          #next-question {float:right; display:none; background:lightblue; color:azure;}
+          #previous-question {position:absolute; left:0.75rem; display:none; background:lightblue;}
+          #next-question {position:absolute; right:0.75rem; display:none; background:lightblue; color:azure;}
 
           .questions {overflow-y:auto; display:none;}
 
-          .question {margin:0 0 0 10%; font-size:1.25rem; line-height:1.25rem; font-weight:normal;}
-          .number {font-size:1.5rem; line-height:1.25rem; font-weight:bold; float:left;}
+          .question {margin:0; font-size:1.25rem; line-height:1.25rem; font-weight:normal;}
+
+          .progress {margin:0.5rem 0; font-size:0.75rem;}
+          #number, #total {margin:0 0.25rem;font-size:1rem;}
 
           .main {width:62%; float:left; margin-bottom:0.75rem;}
 
-          .meta {width:32%; float:right; border-left:1px solid #ccc; padding: 0 0 0.75rem 0.75rem;}
+          .meta {width:34%; float:right; border-left:1px solid #ccc; padding: 0 0 0.75rem 0.75rem;}
           .meta img {width:100%; height:auto;}
           .meta .answer-details {opacity:0; transition:opacity 0.7s ease; font-size:0.9rem; line-height:1.1rem;}
 
-          .options {list-style-type: none; margin:0 0 0 10%; padding:0; font-family:Verdana, Arial, Helvetica, sans-serif;}
+          .options {list-style-type: none; margin:0; padding:0; font-family:Verdana, Arial, Helvetica, sans-serif;}
           .option {padding:0.5rem 0; margin:0.75rem 0 0 0; border-radius: 5px; background:#ddd; text-align: center;}
           .option:hover {cursor:pointer;}
           .answered .option:hover {cursor:default;}
@@ -33,13 +35,13 @@
           .answered .correct {transition:background-color 0.7s; background:#17b248; color:#fff;}
           .answered .incorrect {transition:background-color 0s; background:#b50300; color:#fff;}
 
-          .quiz-footer {overflow-y:auto; background:#eee; border-top:1px solid #ddd; margin:0 -0.75rem -0.75rem -0.75rem;}
+          .quiz-footer {overflow-y:auto; background:#eee; position:relative; text-align:center; border-top:1px solid #ddd; margin:0 -0.75rem -0.75rem -0.75rem; padding:0.75rem; font-family:Verdana, Arial, Helvetica, sans-serif;}
 
           @media (max-width: 480px) {
             .main {float: none; width:100%;}
             .meta {float: none; width:100%; border-left:0; border-top:1px solid #ccc; padding:0.75rem 0;}
             .options {margin-left:0;}
-            #previous-question, #next-question {float:none; width:90%;}
+            #previous-question, #next-question {position:initial; width:100%;}
           }
 
         </style>
@@ -55,7 +57,6 @@
         <script id="questions-template" type="text/template">
           <div class="questions">
             <div class="main">
-              <span class="number"><%= number %>.</span>
               <h5 class="question"><%= question %></h5>
               <ul class="options">
                 <% _.each(options, function(value, key){ %>
@@ -84,14 +85,18 @@
             quiz.innerHTML = quiz.innerHTML + template(question);
           });
 
-          //prev/next btns
-          quiz.innerHTML = quiz.innerHTML + '<div class="quiz-footer"><button id="next-question" class="button">Next question</button><button id="previous-question" class="button">Previous question</button></div>';
-          var next = document.getElementById('next-question');
-          var prev = document.getElementById('previous-question');
-
           //question state
           var questions = document.getElementsByClassName('questions');
           var currentQuestion = 0;
+
+          //prev/next btns
+          quiz.innerHTML = quiz.innerHTML + '<div class="quiz-footer"><button id="next-question" class="button">Next question</button><div class="progress"><span id="number">1</span>of<span id="total">10</span></div><button id="previous-question" class="button">Previous question</button></div>';
+          var next = document.getElementById('next-question');
+          var prev = document.getElementById('previous-question');
+
+          //set progress
+          document.getElementById('total').textContent = questions.length;
+          document.getElementById('number').textContent = currentQuestion + 1;
 
           //show next button for first question
           next.style.display = 'block';
@@ -233,6 +238,7 @@
 
           //display first question
           quiz.getElementsByClassName('questions')[0].style.display = 'block';
+
           if(loadAnswer(currentQuestion)) {
             var opts = document.getElementsByClassName("options")[currentQuestion];
             var el;
