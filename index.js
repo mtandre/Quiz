@@ -8,7 +8,10 @@ var httpServer = http.Server(app);
 app.use(express.static(__dirname + '/static'));
 
 app.get('/', function(req, res){
-    res.sendFile(__dirname + '/index.html');
+  res.sendFile(__dirname + '/index.html');
+});
+app.get('/new', function(req, res){
+  res.sendFile(__dirname + '/new.html');
 });
 
 app.listen(3000);
