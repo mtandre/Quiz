@@ -51,11 +51,22 @@ var createQuiz = function(quizData) {
     //enable next btn
     next.style.color = '#2F2F2F';
 
+    if (currentQuestion === (questions.length - 1)) {
+      results.style.color = '#2F2F2F';
+      results.addEventListener('click', function(){
+        showResults();
+      });
+    } else {
+      results.style.color = 'azure';
+    }
+
     //mark answers
     if (parent.className.indexOf('answered') === -1) {
       parent.className += ' answered';
       if (el.className.indexOf('correct') === -1) {
         el.className += ' incorrect';
+      } else {
+        correct++;
       }
     }
   }
@@ -68,6 +79,21 @@ var createQuiz = function(quizData) {
     document.head.appendChild(styles);
   }
 
+  function showResults() {
+    var facebook = '<a href="https://www.facebook.com/sharer/sharer.php?u=' + window.location.origin + window.location.pathname + '?qs=fb&title=I+scored+' + correct + '/' + questions.length + '+on+the+JSOnline.com+News+Quiz."><button class="button shareBtn facebook">facebook</button></a>';
+    var twitter = '<a href="http://twitter.com/share?url=' + window.location.origin + window.location.pathname + '?qs=fb&text=I+scored+' + correct + '/' + questions.length + '+on+the+JSOnline.com+News+Quiz."><button class="button twitter">Twitter</button></a>';
+    var score = '<div class="quiz-overlay"></div><div class="results-overlay"><p>You got ' + correct + ' of ' + questions.length + ' questions correct.<br><span>Share and challenge your friends</span></p><div class="quiz-share">' + facebook + twitter + '</div><button id="quiz-close" class="button">Back to quiz</button></div>';
+    quiz.innerHTML = quiz.innerHTML + score;
+    var close = document.getElementById('quiz-close');
+    var overlay = document.getElementsByClassName('quiz-overlay')[0];
+    var share = document.getElementsByClassName('results-overlay')[0];
+    close.addEventListener('click', function(){
+      var removed = close.parentNode.removeChild(close);
+      var removed = share.parentNode.removeChild(share);
+      var removed = overlay.parentNode.removeChild(overlay);
+    });
+  }
+
   try {
     if(quizData.constructor !== Array) throw 're-export quiz data';
     if(quizData <= 1) throw 'quiz must have more than 1 question';
@@ -77,6 +103,7 @@ var createQuiz = function(quizData) {
 
     var quizID = pageId;
     var quiz = document.getElementById('quiz');
+    var correct = 0;
 
     // render questions
     var template = _.template(document.getElementById('questions-template').innerHTML);
@@ -89,9 +116,10 @@ var createQuiz = function(quizData) {
     var currentQuestion = 0;
 
     //prev/next btns
-    quiz.innerHTML = quiz.innerHTML + '<div class="quiz-footer"><button id="next-question" class="button">Next question</button><div class="progress"><span id="number">1</span>of<span id="total">10</span></div><button id="previous-question" class="button">Previous question</button></div>';
+    quiz.innerHTML = quiz.innerHTML + '<div class="quiz-footer"><button id="next-question" class="button">Next question</button><button id="quiz-results" class="button">Results</button><div class="progress"><span id="number">1</span>of<span id="total">10</span></div><button id="previous-question" class="button">Previous question</button></div>';
     var next = document.getElementById('next-question');
     var prev = document.getElementById('previous-question');
+    var results = document.getElementById('quiz-results');
 
     //set progress
     document.getElementById('total').textContent = questions.length;
@@ -136,6 +164,7 @@ var createQuiz = function(quizData) {
       } else if (currentQuestion === (questions.length - 1)) {
         prev.style.display = 'block';
         next.style.display = 'none';
+        results.style.display = 'block';
       }
     });
 
