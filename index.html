@@ -11,8 +11,8 @@
           .button {outline:none; display:inline-block; border:0; padding:0.5rem 1rem; color:#444; text-transform:uppercase; font-size:0.85rem; letter-spacing:1px; border-radius:5px;}
           .button:hover {cursor:pointer;}
 
-          #previous-question {position:absolute; left:0.75rem; display:none; background:lightblue;}
-          #next-question {position:absolute; right:0.75rem; display:none; background:lightblue; color:azure;}
+          #previous-question {position:absolute; left:0.75rem; top:0.75rem; display:none; background:lightblue;}
+          #next-question {position:absolute; right:0.75rem; top:0.75rem; display:none; background:lightblue; color:azure;}
 
           .questions {overflow-y:auto; display:none;}
 
@@ -24,7 +24,7 @@
           .main {width:62%; float:left; margin-bottom:0.75rem;}
 
           .meta {width:34%; float:right; border-left:1px solid #ccc; padding: 0 0 0.75rem 0.75rem;}
-          .meta img {width:100%; height:auto;}
+          .meta img {width:100%; height:auto; transition:opacity 0.7s ease;}
           .meta .answer-details {opacity:0; transition:opacity 0.7s ease; font-size:0.9rem; line-height:1.1rem;}
 
           .options {list-style-type: none; margin:0; padding:0; font-family:Verdana, Arial, Helvetica, sans-serif;}
@@ -43,8 +43,8 @@
             .options {margin-left:0;}
             #previous-question, #next-question {position:initial; width:100%;}
           }
-
         </style>
+        <script>var pageId = 123;</script>
     </head>
     <body>
         <div id="quiz"></div>
@@ -66,195 +66,225 @@
                 <% }) %>
               </ul>
             </div>
-            <div class="meta">
-              <%= imgsrc !== '' ? '<img src="' + imgsrc + '">' : '' %>
-              <div class="answer-details">
-                <%= answerDetails %>
-                <a href="<%= articleUrl %>">Read more</a>
+            <% if(imgsrc !== '') { %>
+              <div class="meta">
+                <% if(imgsrc !== '') { %>
+                  <img src="<%= imgsrc %>" <%= hidePhoto ? 'style="opacity:0;"' : ''%>>
+                <% } %>
+                <% if(articleUrl !== '') { %>
+                  <div class="answer-details">
+                    <%= answerDetails %>
+                    <a target="_blank" href="<%= articleUrl %>">Read more</a>
+                  </div>
+                <% } %>
               </div>
-            </div>
+            <% } %>
           </div>
         </script>
-        <script>  // browser >= ie9
-          var quizID = 1234;  //clickability ID
-          var quiz = document.getElementById('quiz');
+        <script>
+          var createQuiz = function(quizData) {
+            'use strict';  //browser >= ie9
 
-          // render questions
-          var template = _.template(document.getElementById('questions-template').innerHTML);
-          _.each(questionsArray, function(question){
-            quiz.innerHTML = quiz.innerHTML + template(question);
-          });
-
-          //question state
-          var questions = document.getElementsByClassName('questions');
-          var currentQuestion = 0;
-
-          //prev/next btns
-          quiz.innerHTML = quiz.innerHTML + '<div class="quiz-footer"><button id="next-question" class="button">Next question</button><div class="progress"><span id="number">1</span>of<span id="total">10</span></div><button id="previous-question" class="button">Previous question</button></div>';
-          var next = document.getElementById('next-question');
-          var prev = document.getElementById('previous-question');
-
-          //set progress
-          document.getElementById('total').textContent = questions.length;
-          document.getElementById('number').textContent = currentQuestion + 1;
-
-          //show next button for first question
-          next.style.display = 'block';
-
-          //next question
-          next.addEventListener('click', function(){
-            questions[currentQuestion].style.display = "none";
-            currentQuestion++;
-            next.style.color = '';
-            questions[currentQuestion].style.display = 'block';
-
-            //check for existing answer
-            if(loadAnswer(currentQuestion)) {
-              var opts = document.getElementsByClassName("options")[currentQuestion];
-              var el;
-              var ans = loadAnswer(currentQuestion);
-              _.each(opts.getElementsByClassName("option"), function(opt) {
-                var key = opt.getElementsByClassName('value')[0].getAttribute('data-key');
-                if (key == ans) {
-                  el = opt;
-                }
-              });
-              try {
-                markAnswers(el, true);
-              } catch (err) {
-                console.log(err);
+            //store answers in localstorage
+            function storeAnswer(num,ans) {
+              var data = {};
+              if (localStorage.getItem('answers-' + quizID)) {
+                data = JSON.parse(localStorage.getItem('answers-' + quizID));
               }
+              data[num] = ans;
+              localStorage.setItem('answers-' + quizID,JSON.stringify(data));
             }
 
-            //toggle prev/next btns
-            if (currentQuestion === 0) {
-              prev.style.display = 'none';
-              next.style.display = 'block';
-            } else if (currentQuestion > 0 && currentQuestion < (questions.length - 1)) {
-              prev.style.display = 'block';
-              next.style.display = 'block';
-            } else if (currentQuestion === (questions.length - 1)) {
-              prev.style.display = 'block';
-              next.style.display = 'none';
-            }
-          });
-
-          //prev question
-          prev.addEventListener('click', function(){
-            questions[currentQuestion].style.display = "none";
-            currentQuestion--;
-            questions[currentQuestion].style.display = 'block';
-
-            //check for existing answer
-            if(loadAnswer(currentQuestion)) {
-              var opts = document.getElementsByClassName("options")[currentQuestion];
-              var el;
-              var ans = loadAnswer(currentQuestion);
-              _.each(opts.getElementsByClassName("option"), function(opt) {
-                var key = opt.getElementsByClassName('value')[0].getAttribute('data-key');
-                if (key == ans) {
-                  el = opt;
+            //retrieve answers from localstorage
+            function loadAnswer(num) {
+              var data = {};
+              if (localStorage.getItem('answers-' + quizID)) {
+                data = JSON.parse(localStorage.getItem('answers-' + quizID));
+                if(data[num]){
+                  return data[num];
+                } else {
+                  return false;
                 }
-              });
-              try {
-                markAnswers(el, true);
-              } catch (err) {
-                console.log(err);
-              }
-            }
-
-            //toggle prev/next btns
-            if (currentQuestion === 0) {
-              prev.style.display = 'none';
-              next.style.display = 'block';
-            } else if (currentQuestion > 0 && currentQuestion < (questions.length - 1)) {
-              prev.style.display = 'block';
-              next.style.display = 'block';
-            } else if (currentQuestion === (questions.length - 1)) {
-              prev.style.display = 'block';
-              next.style.display = 'none';
-            }
-          });
-
-          //store answers in localstorage
-          function storeAnswer(num,ans) {
-            var data = {};
-            if (localStorage.getItem('answers-' + quizID)) {
-              data = JSON.parse(localStorage.getItem('answers-' + quizID));
-            }
-            data[num] = ans;
-            localStorage.setItem('answers-' + quizID,JSON.stringify(data));
-          }
-
-          //retrieve answers from localstorage
-          function loadAnswer(num) {
-            var data = {};
-            if (localStorage.getItem('answers-' + quizID)) {
-              data = JSON.parse(localStorage.getItem('answers-' + quizID));
-              if(data[num]){
-                return data[num];
               } else {
                 return false;
               }
+            }
+
+            //mark answer
+            function markAnswers(el, review){
+              //get element of question
+              var el = el;
+              var parent = el.parentElement;
+              var photo =  parent.parentElement.parentElement.getElementsByTagName('img')[0];
+              var more = parent.parentElement.parentElement.getElementsByClassName('answer-details')[0];
+
+              //store answer
+              if (!review) {
+                var ans = el.getElementsByClassName('value')[0].getAttribute('data-key');
+                storeAnswer(currentQuestion,ans);
+              }
+              //show answer details
+              if (more) {
+                if (photo && photo.style.opacity == 0) {
+                  photo.style.opacity = 1;
+                  more.style.opacity = 1;
+                } else {
+                  more.style.opacity = 1;
+                }
+              }
+
+              //enable next btn
+              next.style.color = '#2F2F2F';
+
+              //mark answers
+              if (parent.className.indexOf('answered') === -1) {
+                parent.className += ' answered';
+                if (el.className.indexOf('correct') === -1) {
+                  el.className += ' incorrect';
+                }
+              }
+            }
+            if(quizData && quizData.constructor === Array && quizData.length > 1) {
+              try {
+                var quizID = pageId;
+                var quiz = document.getElementById('quiz');
+
+                // render questions
+                var template = _.template(document.getElementById('questions-template').innerHTML);
+                _.each(quizData, function(question){
+                  quiz.innerHTML = quiz.innerHTML + template(question);
+                });
+
+                //question state
+                var questions = document.getElementsByClassName('questions');
+                var currentQuestion = 0;
+
+                //prev/next btns
+                quiz.innerHTML = quiz.innerHTML + '<div class="quiz-footer"><button id="next-question" class="button">Next question</button><div class="progress"><span id="number">1</span>of<span id="total">10</span></div><button id="previous-question" class="button">Previous question</button></div>';
+                var next = document.getElementById('next-question');
+                var prev = document.getElementById('previous-question');
+
+                //set progress
+                document.getElementById('total').textContent = questions.length;
+                document.getElementById('number').textContent = currentQuestion + 1;
+
+                //show next button for first question
+                next.style.display = 'block';
+
+                //next question
+                next.addEventListener('click', function(){
+                  questions[currentQuestion].style.display = "none";
+                  currentQuestion++;
+                  document.getElementById('number').textContent = currentQuestion + 1;
+                  next.style.color = '';
+                  questions[currentQuestion].style.display = 'block';
+
+                  //check for existing answer
+                  if(loadAnswer(currentQuestion)) {
+                    var opts = document.getElementsByClassName("options")[currentQuestion];
+                    var el;
+                    var ans = loadAnswer(currentQuestion);
+                    _.each(opts.getElementsByClassName("option"), function(opt) {
+                      var key = opt.getElementsByClassName('value')[0].getAttribute('data-key');
+                      if (key == ans) {
+                        el = opt;
+                      }
+                    });
+                    try {
+                      markAnswers(el, true);
+                    } catch (err) {
+                      console.log(err);
+                    }
+                  }
+
+                  //toggle prev/next btns
+                  if (currentQuestion === 0) {
+                    prev.style.display = 'none';
+                    next.style.display = 'block';
+                  } else if (currentQuestion > 0 && currentQuestion < (questions.length - 1)) {
+                    prev.style.display = 'block';
+                    next.style.display = 'block';
+                  } else if (currentQuestion === (questions.length - 1)) {
+                    prev.style.display = 'block';
+                    next.style.display = 'none';
+                  }
+                });
+
+                //prev question
+                prev.addEventListener('click', function(){
+                  questions[currentQuestion].style.display = "none";
+                  currentQuestion--;
+                  document.getElementById('number').textContent = currentQuestion + 1;
+                  questions[currentQuestion].style.display = 'block';
+
+                  //check for existing answer
+                  if(loadAnswer(currentQuestion)) {
+                    var opts = document.getElementsByClassName("options")[currentQuestion];
+                    var el;
+                    var ans = loadAnswer(currentQuestion);
+                    _.each(opts.getElementsByClassName("option"), function(opt) {
+                      var key = opt.getElementsByClassName('value')[0].getAttribute('data-key');
+                      if (key == ans) {
+                        el = opt;
+                      }
+                    });
+                    try {
+                      markAnswers(el, true);
+                    } catch (err) {
+                      console.log(err);
+                    }
+                  }
+
+                  //toggle prev/next btns
+                  if (currentQuestion === 0) {
+                    prev.style.display = 'none';
+                    next.style.display = 'block';
+                  } else if (currentQuestion > 0 && currentQuestion < (questions.length - 1)) {
+                    prev.style.display = 'block';
+                    next.style.display = 'block';
+                  } else if (currentQuestion === (questions.length - 1)) {
+                    prev.style.display = 'block';
+                    next.style.display = 'none';
+                  }
+                });
+
+                // apply quiz functionality to each set of options
+                var options = document.getElementsByClassName('option');
+                _.each(options,function(option) {
+
+                  //add click event to each option
+                  option.addEventListener('click', function(){
+                    markAnswers(this,false);
+                  });
+                });
+
+                //display first question
+                quiz.getElementsByClassName('questions')[0].style.display = 'block';
+
+                if(loadAnswer(currentQuestion)) {
+                  var opts = document.getElementsByClassName("options")[currentQuestion];
+                  var el;
+                  var ans = loadAnswer(currentQuestion);
+                  _.each(opts.getElementsByClassName("option"), function(opt) {
+                    var key = opt.getElementsByClassName('value')[0].getAttribute('data-key');
+                    if (key == ans) {
+                      el = opt;
+                    }
+                  });
+                  try {
+                    markAnswers(el, true);
+                  } catch (err) {
+                    console.log(err);
+                  }
+                }
+              } catch (err) {
+                console.log(err);
+              }
             } else {
-              return false;
+              console.log('re-export quiz data');
             }
-          }
-
-          //mark answer
-          function markAnswers(el, review){
-            //get element of question
-            var el = el;
-            var parent = el.parentElement;
-            var more = parent.parentElement.parentElement.getElementsByClassName('answer-details')[0];
-
-            //store answer
-            if (!review) {
-              var ans = el.getElementsByClassName('value')[0].getAttribute('data-key');
-              storeAnswer(currentQuestion,ans);
-            }
-            //show answer details
-            more.style.opacity = 1;
-            next.style.color = '#2F2F2F';
-
-            //mark answers
-            if (parent.className.indexOf('answered') === -1) {
-              parent.className += ' answered';
-              if (el.className.indexOf('correct') === -1) {
-                el.className += ' incorrect';
-              }
-            }
-          }
-
-          // apply quiz functionality to each set of options
-          var options = document.getElementsByClassName('option');
-          _.each(options,function(option) {
-
-            //add click event to each option
-            option.addEventListener('click', function(){
-              markAnswers(this,false);
-            });
-          });
-
-          //display first question
-          quiz.getElementsByClassName('questions')[0].style.display = 'block';
-
-          if(loadAnswer(currentQuestion)) {
-            var opts = document.getElementsByClassName("options")[currentQuestion];
-            var el;
-            var ans = loadAnswer(currentQuestion);
-            _.each(opts.getElementsByClassName("option"), function(opt) {
-              var key = opt.getElementsByClassName('value')[0].getAttribute('data-key');
-              if (key == ans) {
-                el = opt;
-              }
-            });
-            try {
-              markAnswers(el, true);
-            } catch (err) {
-              console.log(err);
-            }
-          }
+          };
+          createQuiz(questionsArray);
         </script>
     </body>
 </html>
