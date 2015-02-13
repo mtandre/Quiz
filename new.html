@@ -26,6 +26,7 @@
       <div class="row">
         <div class="cold-md-12 more">
           <button type="button" class="btn btn-success addQuestion">Add another question</button>
+          <button type="button" class="btn btn-info generateQuiz pull-right">Generate quiz</button>
         </div>
       </div>
     </div>
@@ -38,42 +39,42 @@
           <form>
             <div class="form-group">
               <label for="question<%= number %>">Question <%= number %></label>
-              <input type="text" class="form-control" id="question<%= number %>" placeholder="Question">
+              <input type="text" class="form-control" id="question<%= number %>" placeholder="Question" data-item="question">
             </div>
             <p><strong>Answers</strong></p>
             <div class="input-group">
               <span class="input-group-addon">
-                <input type="checkbox">
+                <input type="radio" name="question<%= number %>" data-item="answer1check">
               </span>
-              <input type="text" class="form-control">
+              <input type="text" class="form-control" placeholder="Required" data-item="answer1">
             </div>
             <div class="input-group">
               <span class="input-group-addon">
-                <input type="checkbox">
+                <input type="radio" name="question<%= number %>" data-item="answer2check">
               </span>
-              <input type="text" class="form-control">
+              <input type="text" class="form-control" placeholder="Required" data-item="answer2">
             </div>
             <div class="input-group">
               <span class="input-group-addon">
-                <input type="checkbox">
+                <input type="radio" name="question<%= number %>" data-item="answer3check">
               </span>
-              <input type="text" class="form-control">
+              <input type="text" class="form-control" placeholder="Optional" data-item="answer3">
             </div>
             <div class="input-group">
               <span class="input-group-addon">
-                <input type="checkbox">
+                <input type="radio" name="question<%= number %>" data-item="answer4check">
               </span>
-              <input type="text" class="form-control">
+              <input type="text" class="form-control" placeholder="Optional" data-item="answer4">
             </div>
           </form>
         </div>
         <div class="col-md-4 col-sm-4 content">
           <div class="form-group content-input">
             <label for="contentId<%= number %>">Content Id</label>
-            <input type="text" class="form-control" id="contentId<%= number %>" placeholder="Clickability ID">
+            <input type="text" class="form-control" id="contentId<%= number %>" placeholder="Clickability ID" data-item="contentId">
             <div class="checkbox">
               <label>
-                <input type="checkbox"> Hide photo?
+                <input type="checkbox" data-item="togglePhoto"> Hide photo?
               </label>
             </div>
           </div>
@@ -85,7 +86,7 @@
     -->
     <script id="content-template" type="text/template">
       <div class="thumbnail">
-          <img src="<%= thumbnailUrl %>" alt="No Image">
+          <img src="<%= thumbnailUrl %>" alt="No Image" data-item="">
         <div class="caption">
           <textarea class="form-control" rows="8" ><%= shortBody %></textarea>
           <a href="<%= url %>" target="_blank">Link</a>
@@ -138,14 +139,12 @@
           var data = window[contentVarName].collection;
           data = data[0];
           var tempData = {}
-          //start messy
-          //resize image url
+          //resize image url - messy
           var t = data.thumbnailUrl;
           var dims = t.match(/\/\d+\*\d+\//g);
           var dim = dims[0];
           var trimmed = dim.replace(/\//g,'');
           var parts = trimmed.split('*');
-          console.log(parts);
           var x = parseInt(parts[0],10);
           var y = parseInt(parts[1],10);
           var factor = 3;
@@ -156,9 +155,52 @@
           tempData.url = data.url;
           $('.' + contentVarName + ' .content').append(contentTemplate(tempData));
         } catch(err) {
-          console.log(err);
+          console.log('Content parsing error: ' + err);
         }
       }
+
+
+      function generateQuizObject() {
+        var questions = document.getElementsByClassName("question");
+        _.each(questions, function(question){
+          var tempObj = {};
+          tempObj["question"] = "";
+          tempObj["options"] = {};
+          tempObj["answer"] = "";
+          tempObj["cid"] = "";
+          tempObj["answerDetails"] = "";
+          tempObj["imgsrc"] = "";
+          tempObj["hidePhoto"] = "";
+          tempObj["articleUrl"] = "";
+
+
+
+
+
+
+
+
+        });
+        return tempObj;
+      }
+      var quizObj = generateQuizObject();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     </script>
   </body>
