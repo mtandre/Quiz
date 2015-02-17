@@ -14,20 +14,37 @@
     .input-group {margin-top:5px;}
     .question {border:1px solid #ddd; padding:10px; margin-top:10px;}
     .more {padding:10px; text-align:center;}
+    .content {position:relative;}
+    .output-wrapper {padding:10px;}
     </style>
   </head>
   <body>
     <div class="container">
       <div class="page-header">
-        <h1></h1>
+        <!-- <h1></h1> -->
         <p class="lead">Quiz generator</p>
       </div>
       <div id="questions"></div>
       <div class="row">
         <div class="cold-md-12 more">
           <button type="button" class="btn btn-success addQuestion">Add another question</button>
-          <button type="button" class="btn btn-info generateQuiz pull-right">Generate quiz</button>
+          <button type="button" class="btn btn-info pull-right generateQuiz">Generate quiz</button>
         </div>
+      </div>
+      <div class="row">
+        <div class="cold-md-12 msgs">
+        </div>
+      </div>
+      <div class="row">
+        <div class="cold-md-12 output-wrapper">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              Copy and paste the output below into the "Content with JS" field of a JSO General Page or script module.
+            </div>
+            <div class="panel-body">
+              <pre id="output">Click "Generate quiz" to create embed code.</pre>
+            </div>
+          </div>
       </div>
     </div>
     <!--
@@ -78,6 +95,7 @@
               </label>
             </div>
           </div>
+          <div style="position:absolute; top:0; right:0;"><a href="" class="text-danger" onclick='$(".question<%= number %>").remove();return false;'>Delete Question</a></div>
         </div>
       </div>
     </script>
@@ -86,10 +104,18 @@
     -->
     <script id="content-template" type="text/template">
       <div class="thumbnail">
-          <img src="<%= thumbnailUrl %>" alt="No Image" data-item="">
+          <img src="<%= thumbnailUrl %>" alt="No Image" data-item="imageUrl">
         <div class="caption">
-          <textarea class="form-control" rows="8" ><%= shortBody %></textarea>
-          <a href="<%= url %>" target="_blank">Link</a>
+          <% if (shortBody) { %>
+          <textarea class="form-control" rows="8" data-item="answerDetails"><%= shortBody %></textarea>
+          <% } else { %>
+          <textarea class="form-control" rows="8" data-item="answerDetails" placeholder="No content found. Double-check Clickability ID or manually enter related text."><%= shortBody %></textarea>
+          <% } %>
+          <% if (url) { %>
+            <a href="<%= url %>" target="_blank">Link</a>
+          <% } else { %>
+            <a href="<%= url %>" onclick="return false;">No Link</a>
+          <% } %>
         </div>
       </div>
     </script>
@@ -119,6 +145,23 @@
       $('.addQuestion').on('click', function() {
         questionNumber++;
         createQuestion(questionNumber);
+        if($('#output').text().length > 50) {
+          addMsg("A new question has been added, please re-generate the quiz.",1);
+        }
+      });
+
+      $('.generateQuiz').on('click', function() {
+        var output = generateQuizObject();
+        var outputStr = JSON.stringify(output);
+        var varName = "questionData";
+        var scriptUrl = "http://graphics.jsonline.com/jsi_news/javascripts/quiz/jso-quiz-0.9.0.js?v=1";
+        var div = "<div id=\"quiz\"></div>";
+        var scriptInclude = "<scr" + "ipt src=\"" + scriptUrl + "\"></scr" + "ipt>";
+        var variableWrapper = "<script>var " + varName + " = " + outputStr + ";</scr" + "ipt>";
+        var quizFcn = "<scr" + "ipt>createQuiz(" + varName + ");</scr" + "ipt>";
+        var embedCode = div + variableWrapper + scriptInclude +  quizFcn;
+        $('#output').text(embedCode);
+        removeMsg(1);
       });
 
       function getContent(id,qnum) {
@@ -142,65 +185,110 @@
           //resize image url - messy
           var t = data.thumbnailUrl;
           var dims = t.match(/\/\d+\*\d+\//g);
-          var dim = dims[0];
-          var trimmed = dim.replace(/\//g,'');
-          var parts = trimmed.split('*');
-          var x = parseInt(parts[0],10);
-          var y = parseInt(parts[1],10);
-          var factor = 3;
-          var final = '/' + (x*factor) + '*' + (y*factor) + '/';
-          tempData.thumbnailUrl = t.replace(/\/\d+\*\d+\//g, final);
+          if (dims) {
+            var dim = dims[0];
+            var trimmed = dim.replace(/\//g,'');
+            var parts = trimmed.split('*');
+            var x = parseInt(parts[0],10);
+            var y = parseInt(parts[1],10);
+            var factor = 3;
+            var final = '/' + (x*factor) + '*' + (y*factor) + '/';
+            tempData.thumbnailUrl = t.replace(/\/\d+\*\d+\//g, final) || "";
+          } else {
+            tempData.thumbnailUrl = "";
+          }
           //end messy
-          tempData.shortBody = data.shortBody.replace(/<\/?[^>]+(>|$)/g, " ").replace('&quot;','"').replace('&amp;','&');
-          tempData.url = data.url;
+          tempData.shortBody = data.shortBody.replace(/<\/?[^>]+(>|$)/g, " ").replace('&quot;','"').replace('&amp;','&') || "";
+          tempData.url = data.url || "";
+          $('.' + contentVarName + ' .content .thumbnail').remove();
           $('.' + contentVarName + ' .content').append(contentTemplate(tempData));
         } catch(err) {
-          console.log('Content parsing error: ' + err);
+          $('.' + contentVarName + ' .content .thumbnail').remove();
+          $('.' + contentVarName + ' .content').append(contentTemplate({url: "", thumbnailUrl: "", shortBody: ""}));
+          console.log('Clickability ID - Content parsing error: ' + err);
         }
       }
 
-
       function generateQuizObject() {
-        var questions = document.getElementsByClassName("question");
-        _.each(questions, function(question){
-          var tempObj = {};
-          tempObj["question"] = "";
-          tempObj["options"] = {};
-          tempObj["answer"] = "";
-          tempObj["cid"] = "";
-          tempObj["answerDetails"] = "";
-          tempObj["imgsrc"] = "";
-          tempObj["hidePhoto"] = "";
-          tempObj["articleUrl"] = "";
+        removeMsg("all");
+        try {
+          var questions = document.getElementsByClassName("question");
 
+          var questionsArray = [];
+          _.each(questions, function(q, index){
 
+            var qNum = index + 1;
+            var tempObj = {};
 
+            var questionText = $(q).find("input[data-item=question]").val() || "";
+            tempObj["question"] = questionText;
+            if (!tempObj["question"] || tempObj["question"] === "") {
+              addMsg("Question " + qNum + ": Question field cannot be blank.");
+            }
 
+            var options = $(q).find("form .input-group");
+            if (!options || options.length < 2) {
+              addMsg("Question " + qNum + ": Minimum of 2 answers required.");
+            }
 
+            var tempOptionsObj = {};
+            var answerNumber = 4;
+            _.each(options, function(option, index){
+              var answerText = $(option).find("input[type=text]").val();
+              if ((!answerText || answerText === "") && index < 2) {
+                addMsg("Question " + qNum + ": Answer " + (index+1) + " cannot be blank.");
+              }
 
+              var correctToggle = $(option).find("input[type=radio]").is(":checked");
+              var questionNumber = index;
+              tempOptionsObj[questionNumber] = answerText;
+              if(correctToggle) {
+                answerNumber = questionNumber;
+              }
+            });
 
+            tempObj["options"] = tempOptionsObj;
 
-        });
-        return tempObj;
+            tempObj["answer"] = answerNumber;
+            if (answerNumber < 0 || answerNumber > 3){
+              addMsg("Question " + qNum + ": Please check a valid answer.");
+            }
+
+            var cid = $(q).find("input[data-item=contentId]").val() || "";
+            tempObj["cid"] = cid;
+
+            var answerDetails = $(q).find(".caption textarea").val() || "";
+            tempObj["answerDetails"] = answerDetails;
+
+            var imgsrc = $(q).find(".thumbnail img").attr("src") || "";
+            tempObj["imgsrc"] = imgsrc;
+
+            var hidePhoto = $(q).find("input[data-item=togglePhoto]").is(':checked') || false;
+            tempObj["hidePhoto"] = hidePhoto;
+
+            var articleUrl = $(q).find(".caption a").attr("href") || "";
+            tempObj.articleUrl = articleUrl;
+
+            questionsArray.push(tempObj);
+            console.log(tempObj);
+          });
+          return questionsArray;
+        } catch (err) {
+          addMsg("Data generation Error. Please check each field for unfriendly characters. Error Message: " + err);
+        }
       }
-      var quizObj = generateQuizObject();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      function addMsg(msg, msgId){
+        var alert = '<div class="alert alert-danger message' + msgId + '" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' + msg + '</div>'
+        $('.msgs').append(alert);
+      }
+      function removeMsg(msgId) {
+        if(msgId === "all") {
+          $('.msgs').html('');
+        } else {
+          $('.message' + msgId).remove();
+        }
+      }
 
     </script>
   </body>

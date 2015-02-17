@@ -4,6 +4,7 @@
 #quiz #previous-question {position:absolute; left:0.75rem; top:0.75rem; display:none; background:lightblue;}
 #quiz #next-question {position:absolute; right:0.75rem; top:0.75rem; display:none; background:lightblue; color:azure;}
 #quiz #quiz-results {position:absolute; right:0.75rem; top:0.75rem; display:none; background:lightblue; color:azure; transition:opacity 0.35s ease;}
+#quiz #quiz-close {color:#fff; background:#aaa;}
 #quiz .questions {overflow-y:auto; display:none;}
 #quiz .question {margin:0; font-size:1.25rem; line-height:1.25rem; font-weight:normal;}
 #quiz .progress {margin:0.5rem 0; font-size:0.75rem;}
@@ -22,7 +23,7 @@
 #quiz .quiz-overlay {position:absolute; top:0; width:100%; height:100%; left:0; z-index:3; background:#ccc; opacity:0.95;}
 #quiz .results-overlay {position:absolute; top:0; width:100%; height:100%; left:0; z-index:4; text-align:center;}
 #quiz .results-overlay .button {margin:0.75rem;}
-#quiz .results-overlay p {margin:5rem 0 0 0; color:#fff; font-family:Verdana, Arial, Helvetica, sans-serif; font-size:1.2rem; line-height:1.7rem;}
+#quiz .results-overlay p {margin:5rem 0 0 0; color:#000; font-family:Verdana, Arial, Helvetica, sans-serif; font-size:1.2rem; line-height:1.7rem;}
 #quiz .facebook {background:#3b5999 !important; margin:1rem; color:#fff;}
 #quiz .twitter {background:#55acee !important; margin:1rem; color:#fff;}
 @media (max-width: 480px) {
