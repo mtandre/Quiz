@@ -11,24 +11,30 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
     <style>
-    .input-group {margin-top:5px;}
+    .col-md-8 .input-group {margin-bottom:10px;}
     .question {border:1px solid #ddd; padding:10px; margin-top:10px;}
     .more {padding:10px; text-align:center;}
     .content {position:relative;}
     .output-wrapper {padding:10px;}
+    .thumbnail img {margin-bottom:10px;}
+    .caption textarea {margin:10px 0;}
+    #test {width:100%; height:600px; border:0;}
     </style>
+    <script>var pageId = "builder";</script>
   </head>
   <body>
     <div class="container">
       <div class="page-header">
         <!-- <h1></h1> -->
-        <p class="lead">Quiz generator</p>
-      </div>
+        <p class="lead">
+          Quiz builder
+          <button type="button" class="btn btn-primary pull-right" data-toggle="modal" data-target=".import-modal">Import</button></p>
+        </div>
       <div id="questions"></div>
       <div class="row">
         <div class="cold-md-12 more">
           <button type="button" class="btn btn-success addQuestion">Add another question</button>
-          <button type="button" class="btn btn-info pull-right generateQuiz">Generate quiz</button>
+          <button type="button" class="btn btn-primary pull-right generateQuiz">Generate quiz</button>
         </div>
       </div>
       <div class="row">
@@ -38,17 +44,34 @@
       <div class="row">
         <div class="cold-md-12 output-wrapper">
           <div class="panel panel-default">
-            <div class="panel-heading">
+            <div class="panel-heading" style="overflow-y:auto;">
               Copy and paste the output below into the "Content with JS" field of a JSO General Page or script module.
             </div>
             <div class="panel-body">
               <pre id="output">Click "Generate quiz" to create embed code.</pre>
+              <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".preview-modal" onclick="preview();">Preview</button>
             </div>
           </div>
       </div>
     </div>
+    <div class="modal fade preview-modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="padding:20px;">
+          <iframe id="test"></iframe>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade import-modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="padding:20px;">
+            <p class="lead" style="border-bottom: 1px solid #eee;">Quiz Importer</p>
+          <textarea class="form-control" rows="5" id="pasted-code" placeholder="Paste existing embed code here..." ></textarea>
+          <button type="button" class="btn btn-success" onclick="parseEmbedCode();" style="margin-top:10px;">Import</button>
+        </div>
+      </div>
+    </div>
     <!--
-    TEMPLATE: question
+    TEMPLATE: new question
     -->
     <script id="question-template" type="text/template">
       <div class="row question question<%= number %>">
@@ -88,7 +111,14 @@
         <div class="col-md-4 col-sm-4 content">
           <div class="form-group content-input">
             <label for="contentId<%= number %>">Content Id</label>
-            <input type="text" class="form-control" id="contentId<%= number %>" placeholder="Clickability ID" data-item="contentId">
+            <form class="form-inline">
+              <div class="form-group">
+                <div class="input-group">
+                  <input type="text" class="form-control" id="contentId<%= number %>" placeholder="Clickability ID" data-item="contentId">
+                </div>
+              </div>
+              <div class="btn btn-primary" id="contentId<%= number %>prefill">Prefill</div>
+            </form>
             <div class="checkbox">
               <label>
                 <input type="checkbox" data-item="togglePhoto"> Hide photo?
@@ -96,47 +126,105 @@
             </div>
           </div>
           <div style="position:absolute; top:0; right:0;"><a href="" class="text-danger" onclick='$(".question<%= number %>").remove();return false;'>Delete Question</a></div>
+          <label>Related Content</label>
+          <div class="thumbnail">
+              <img src="" alt="No Image" data-item="imageUrl">
+            <div class="caption">
+              <input type="text" class="form-control" placeholder="Related image source" data-item="imageUrl">
+              <textarea class="form-control" rows="8" data-item="answerDetails" placeholder="Enter a Clickability ID above to prefill or manually enter related text."></textarea>
+              <input type="text" class="form-control" placeholder="Related link url" data-item="articleUrl">
+            </div>
+          </div>
         </div>
       </div>
     </script>
     <!--
-    TEMPLATE: content
+    TEMPLATE: filled question
     -->
-    <script id="content-template" type="text/template">
-      <div class="thumbnail">
-          <img src="<%= thumbnailUrl %>" alt="No Image" data-item="imageUrl">
-        <div class="caption">
-          <% if (shortBody) { %>
-          <textarea class="form-control" rows="8" data-item="answerDetails"><%= shortBody %></textarea>
-          <% } else { %>
-          <textarea class="form-control" rows="8" data-item="answerDetails" placeholder="No content found. Double-check Clickability ID or manually enter related text."><%= shortBody %></textarea>
-          <% } %>
-          <% if (url) { %>
-            <a href="<%= url %>" target="_blank">Link</a>
-          <% } else { %>
-            <a href="<%= url %>" onclick="return false;">No Link</a>
-          <% } %>
+    <script id="filled-question-template" type="text/template">
+      <div class="row question question<%= number %>">
+        <div class="col-md-8 col-sm-8">
+          <form>
+            <div class="form-group">
+              <label for="question<%= number %>">Question <%= number %></label>
+              <input type="text" class="form-control" id="question<%= number %>" placeholder="Question" data-item="question" value="<%= question.question %>">
+            </div>
+            <p><strong>Answers</strong></p>
+            <div class="input-group">
+              <span class="input-group-addon">
+                <input type="radio" name="question<%= number %>" data-item="answer1check" <%= question.answer === 0 ? "checked=checked" : "" %>>
+              </span>
+              <input type="text" class="form-control" placeholder="Required" data-item="answer1" value="<%= question.options[0] %>">
+            </div>
+            <div class="input-group">
+              <span class="input-group-addon">
+                <input type="radio" name="question<%= number %>" data-item="answer2check"  <%= question.answer === 1 ? "checked=checked" : "" %>>
+              </span>
+              <input type="text" class="form-control" placeholder="Required" data-item="answer2" value="<%= question.options[1] %>">
+            </div>
+            <div class="input-group">
+              <span class="input-group-addon">
+                <input type="radio" name="question<%= number %>" data-item="answer3check"  <%= question.answer === 2 ? "checked=checked" : "" %>>
+              </span>
+              <input type="text" class="form-control" placeholder="Optional" data-item="answer3" value="<%= question.options[2] %>">
+            </div>
+            <div class="input-group">
+              <span class="input-group-addon">
+                <input type="radio" name="question<%= number %>" data-item="answer4check" <%= question.answer === 3 ? "checked=checked" : "" %>>
+              </span>
+              <input type="text" class="form-control" placeholder="Optional" data-item="answer4" value="<%= question.options[3] %>">
+            </div>
+          </form>
+        </div>
+        <div class="col-md-4 col-sm-4 content">
+          <div class="form-group content-input">
+            <label for="contentId<%= number %>">Content Id</label>
+            <form class="form-inline">
+              <div class="form-group">
+                <div class="input-group">
+                  <input type="text" class="form-control" id="contentId<%= number %>" placeholder="Clickability ID" data-item="contentId" value="<%= question.cid %>">
+                </div>
+              </div>
+              <div class="btn btn-primary" id="contentId<%= number %>prefill">Prefill</div>
+            </form>
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" data-item="togglePhoto" <%= question.hidePhoto ? "checked=checked" : "" %>> Hide photo?
+              </label>
+            </div>
+          </div>
+          <div style="position:absolute; top:0; right:0;"><a href="" class="text-danger" onclick='$(".question<%= number %>").remove();return false;'>Delete Question</a></div>
+          <div class="thumbnail">
+              <img src="<%= question.imgsrc %>" alt="No Image" >
+              <div class="caption">
+              <input type="text" class="form-control" placeholder="Related image source" data-item="imageUrl" value="<%= question.imgsrc %>">
+              <textarea class="form-control" rows="8" data-item="answerDetails" placeholder="No content found. Double-check Clickability ID or manually enter related text."><%= question.answerDetails %></textarea>
+              <% if (question.articleUrl) { %>
+                <a href="<%= question.articleUrl %>" target="_blank">Link</a>
+              <% } %>
+                <input type="text" class="form-control" placeholder="Related link url" data-item="articleUrl" value="<%= question.articleUrl %>">
+            </div>
+          </div>
         </div>
       </div>
     </script>
 
-    <script src="underscore-1.7.0.min.js"></script>
+    <script src="http://graphics.jsonline.com/jsi_news/javascripts/underscore/v1.7.0/underscore.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.2/js/bootstrap.min.js"></script>
 
     <script>
       var questionNumber = 1;
       var questionTemplate = _.template(document.getElementById('question-template').innerHTML);
-      var contentTemplate = _.template(document.getElementById('content-template').innerHTML);
+      var filledQuestionTemplate = _.template(document.getElementById('filled-question-template').innerHTML);
       var contentVarName;
 
-      function createQuestion(number) {
+      function createQuestion(number, data) {
         $('#questions').append(questionTemplate({number: number}));
-        $('#contentId' + number).change(_.debounce(function (){
-          $('#contentId' + number).parents('.thumbnail').remove();
+        $('#contentId' + number + 'prefill').on('click', function (){
           var cid = $('#contentId' + number).val();
           getContent(cid,number);
-        },2000));
+        });
       };
 
       //create first question
@@ -151,6 +239,11 @@
       });
 
       $('.generateQuiz').on('click', function() {
+        $('#output').text(compileEmbedCode());
+        removeMsg(1);
+      });
+
+      function compileEmbedCode() {
         var output = generateQuizObject();
         var outputStr = JSON.stringify(output);
         var varName = "questionData";
@@ -160,9 +253,8 @@
         var variableWrapper = "<script>var " + varName + " = " + outputStr + ";</scr" + "ipt>";
         var quizFcn = "<scr" + "ipt>createQuiz(" + varName + ");</scr" + "ipt>";
         var embedCode = div + variableWrapper + scriptInclude +  quizFcn;
-        $('#output').text(embedCode);
-        removeMsg(1);
-      });
+        return embedCode;
+      }
 
       function getContent(id,qnum) {
         var url = 'http://m.jsonline.com/api/v1/?id=' + id + '&bootstrap=question' + qnum;
@@ -178,7 +270,6 @@
           document.getElementsByTagName('head')[0].appendChild(tag);
       }
       function parseContent(){
-        try {
           var data = window[contentVarName].collection;
           data = data[0];
           var tempData = {}
@@ -200,13 +291,10 @@
           //end messy
           tempData.shortBody = data.shortBody.replace(/<\/?[^>]+(>|$)/g, " ").replace('&quot;','"').replace('&amp;','&') || "";
           tempData.url = data.url || "";
-          $('.' + contentVarName + ' .content .thumbnail').remove();
-          $('.' + contentVarName + ' .content').append(contentTemplate(tempData));
-        } catch(err) {
-          $('.' + contentVarName + ' .content .thumbnail').remove();
-          $('.' + contentVarName + ' .content').append(contentTemplate({url: "", thumbnailUrl: "", shortBody: ""}));
-          console.log('Clickability ID - Content parsing error: ' + err);
-        }
+          $('.' + contentVarName + ' .content .thumbnail img').attr("src",tempData.thumbnailUrl);
+          $('.' + contentVarName + ' .content .thumbnail input[data-item=imageUrl]').val(tempData.thumbnailUrl);
+          $('.' + contentVarName + ' .content .thumbnail textarea[data-item=answerDetails]').val(tempData.shortBody);
+          $('.' + contentVarName + ' .content .thumbnail input[data-item=articleUrl').val(tempData.url);
       }
 
       function generateQuizObject() {
@@ -226,7 +314,7 @@
               addMsg("Question " + qNum + ": Question field cannot be blank.");
             }
 
-            var options = $(q).find("form .input-group");
+            var options = $(q).find(".col-md-8 form .input-group");
             if (!options || options.length < 2) {
               addMsg("Question " + qNum + ": Minimum of 2 answers required.");
             }
@@ -235,15 +323,27 @@
             var answerNumber = 4;
             _.each(options, function(option, index){
               var answerText = $(option).find("input[type=text]").val();
+
               if ((!answerText || answerText === "") && index < 2) {
                 addMsg("Question " + qNum + ": Answer " + (index+1) + " cannot be blank.");
               }
 
-              var correctToggle = $(option).find("input[type=radio]").is(":checked");
-              var questionNumber = index;
-              tempOptionsObj[questionNumber] = answerText;
-              if(correctToggle) {
-                answerNumber = questionNumber;
+              if (index > 1) {
+                if (answerText || answerText !== "") {
+                  var correctToggle = $(option).find("input[type=radio]").is(":checked");
+                  var questionNumber = index;
+                  tempOptionsObj[questionNumber] = answerText;
+                  if (correctToggle) {
+                    answerNumber = questionNumber;
+                  }
+                }
+              } else {
+                var correctToggle = $(option).find("input[type=radio]").is(":checked");
+                var questionNumber = index;
+                tempOptionsObj[questionNumber] = answerText;
+                if (correctToggle) {
+                  answerNumber = questionNumber;
+                }
               }
             });
 
@@ -260,17 +360,16 @@
             var answerDetails = $(q).find(".caption textarea").val() || "";
             tempObj["answerDetails"] = answerDetails;
 
-            var imgsrc = $(q).find(".thumbnail img").attr("src") || "";
+            var imgsrc = $(q).find("input[data-item=imageUrl]").val() || "";
             tempObj["imgsrc"] = imgsrc;
 
             var hidePhoto = $(q).find("input[data-item=togglePhoto]").is(':checked') || false;
             tempObj["hidePhoto"] = hidePhoto;
 
-            var articleUrl = $(q).find(".caption a").attr("href") || "";
+            var articleUrl = $(q).find("input[data-item=articleUrl]").val() || "";
             tempObj.articleUrl = articleUrl;
 
             questionsArray.push(tempObj);
-            console.log(tempObj);
           });
           return questionsArray;
         } catch (err) {
@@ -289,6 +388,32 @@
           $('.message' + msgId).remove();
         }
       }
+
+      function preview(){
+        $('#test').empty();
+        var ifrm = document.getElementById('test');
+        ifrm = (ifrm.contentWindow) ? ifrm.contentWindow : (ifrm.contentDocument.document) ? ifrm.contentDocument.document : ifrm.contentDocument;
+        ifrm.document.open();
+        ifrm.document.write('<scr'+'ipt>var pageId = "builder"; localStorage.removeItem(pageId + "-quiz");</scr'+'ipt> ' + compileEmbedCode());
+        ifrm.document.close();
+      }
+
+      function parseEmbedCode() {
+        var input = $("#pasted-code").val();
+        var qArray = input.match(/\[(.*?)\]/g);
+        var obj = JSON.parse(qArray[0]);
+
+        questionNumber = 0;
+        $('#questions').empty();
+
+        _.each(obj, function(q, index) {
+          questionNumber++;
+          $('#questions').append(filledQuestionTemplate({number: questionNumber, question: q}));
+        });
+
+        $('.import-modal').modal('hide');
+      }
+
 
     </script>
   </body>
