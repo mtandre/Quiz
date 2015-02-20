@@ -31,6 +31,12 @@ var createQuiz = function(quizData) {
       return false;
     }
   }
+  function resetQuiz() {
+    if (localStorage.getItem('answers-' + quizID)) {
+      localStorage.removeItem('answers-' + quizID);
+      window.location.reload();
+    }
+  }
 
   //mark answer
   function markAnswers(el, review){
@@ -38,21 +44,19 @@ var createQuiz = function(quizData) {
     var el = el;
     var parent = el.parentElement;
     var photo =  parent.parentElement.parentElement.getElementsByTagName('img')[0];
-    var more = parent.parentElement.parentElement.getElementsByClassName('answer-details')[0];
+    var more = parent.parentElement.parentElement.getElementsByClassName('q-answer-details')[0];
 
     //store answer
     if (!review) {
-      var ans = el.getElementsByClassName('value')[0].getAttribute('data-key');
+      var ans = el.getElementsByClassName('q-value')[0].getAttribute('data-key');
       storeAnswer(currentQuestion,ans);
     }
     //show answer details
-    if (more) {
-      if (photo && photo.style.opacity == 0) {
-        photo.style.opacity = 1;
-        more.style.opacity = 1;
-      } else {
-        more.style.opacity = 1;
-      }
+    if (more && more.style.opacity == 0) {
+      more.style.opacity = 1;
+    }
+    if (photo && photo.style.opacity == 0) {
+      photo.style.opacity = 1;
     }
 
     //enable next btn
@@ -68,10 +72,10 @@ var createQuiz = function(quizData) {
     }
 
     //mark answers
-    if (parent.className.indexOf('answered') === -1) {
-      parent.className += ' answered';
-      if (el.className.indexOf('correct') === -1) {
-        el.className += ' incorrect';
+    if (parent.className.indexOf('q-answered') === -1) {
+      parent.className += ' q-answered';
+      if (el.className.indexOf('q-correct') === -1) {
+        el.className += ' q-incorrect';
       } else {
         correct++;
       }
@@ -83,27 +87,43 @@ var createQuiz = function(quizData) {
     var styles = document.createElement('link')
     styles.type = 'text/css'
     styles.rel = 'stylesheet'
-    styles.href = 'http://graphics.jsonline.com/jsi_news/javascripts/quiz/jso-quiz.css';
+    styles.href = 'http://graphics.jsonline.com/jsi_news/javascripts/quiz/jso-quiz.css?v=20';
     document.head.appendChild(styles);
   }
 
   //generate and show results screen
   function showResults() {
-    var facebook = '<a href="https://www.facebook.com/sharer/sharer.php?u=' + window.location.origin + window.location.pathname + '?qs=fb&title=I+scored+' + correct + '/' + questions.length + '+on+the+JSOnline.com+News+Quiz."><button class="quiz-button shareBtn facebook">facebook</button></a>';
-    var twitter = '<a href="http://twitter.com/share?url=' + window.location.origin + window.location.pathname + '?qs=fb&text=I+scored+' + correct + '/' + questions.length + '+on+the+JSOnline.com+News+Quiz."><button class="quiz-button twitter">Twitter</button></a>';
-    var score = '<div class="quiz-overlay"></div><div class="results-overlay"><p>You got ' + correct + ' of ' + questions.length + ' questions correct.<br><span>Share and challenge your friends</span></p><div class="quiz-share">' + facebook + twitter + '</div><button id="quiz-close" class="quiz-button">Back to quiz</button></div>';
+    if (typeof sendGAevents == 'function') {
+      sendGAevents('JSO Quiz', 'Results - # Correct', correct);
+    }
+    var facebook = '<a href="https://www.facebook.com/sharer/sharer.php?u=' + window.location.origin + window.location.pathname + '?qs=fb&title=I+scored+' + correct + '/' + questions.length + '+on+the+JSOnline.com+News+Quiz." onlcick="if(typeof sendGAevents == \'function\') {sendGAevents(\'JSO Quiz\', \'Results - Facebook Share\', ' + correct + ');};"><button class="q-quiz-button q-shareBtn q-facebook">facebook</button></a>';
+    var twitter = '<a href="http://twitter.com/share?url=' + window.location.origin + window.location.pathname + '?qs=fb&text=I+scored+' + correct + '/' + questions.length + '+on+the+JSOnline.com+News+Quiz." onlcick="if(typeof sendGAevents == \'function\') {sendGAevents(\'JSO Quiz\', \'Results - Twitter Share\', ' + correct + ');};"><button class="q-quiz-button q-shareBtn q-twitter">Twitter</button></a>';
+    var score = '<div class="q-quiz-overlay"></div><div class="q-results-overlay"><p><span>You got ' + correct + ' of ' + questions.length + ' questions correct.</span><br><button id="q-quiz-close" class="q-quiz-button">Review quiz</button><button id="q-quiz-reset" class="q-quiz-button">Retake quiz</button><br><span>Share and challenge your friends</span><br>' + facebook + twitter + '</p></div>';
     var wrap = document.createElement('div');
     wrap.innerHTML = score;
     var cores = wrap.childNodes;
     quiz.appendChild(cores[0]);
     quiz.appendChild(cores[0]);
-    var close = document.getElementById('quiz-close');
-    var overlay = document.getElementsByClassName('quiz-overlay')[0];
-    var share = document.getElementsByClassName('results-overlay')[0];
+    var reset = document.getElementById('q-quiz-reset');
+    reset.addEventListener('click', function(){
+      if (typeof sendGAevents == 'function') {
+        sendGAevents('JSO Quiz', 'Results - Reset', correct);
+      }
+      resetQuiz();
+      window.location.reload();
+    });
+    var close = document.getElementById('q-quiz-close');
+    var overlay = document.getElementsByClassName('q-quiz-overlay')[0];
+    var share = document.getElementsByClassName('q-results-overlay')[0];
     close.addEventListener('click', function(){
+      if (typeof sendGAevents == 'function') {
+        sendGAevents('JSO Quiz', 'Results - Review', correct);
+      }
       var removed1 = share.parentNode.removeChild(share);
       var removed2 = overlay.parentNode.removeChild(overlay);
     });
+    var qtop = document.getElementById('quiz').offsetTop;
+    window.scrollTo(0, qtop);
   }
 
   try {
@@ -121,18 +141,18 @@ var createQuiz = function(quizData) {
     });
 
     //question state
-    var questions = document.getElementsByClassName('questions');
+    var questions = document.getElementsByClassName('q-questions');
     var currentQuestion = 0;
 
     //prev/next btns
-    quiz.innerHTML = quiz.innerHTML + '<div class="quiz-footer"><button id="next-question" class="quiz-button">Next question</button><button id="quiz-results" class="quiz-button">Results</button><div class="progress"><span id="number">1</span>of<span id="total">10</span></div><button id="previous-question" class="quiz-button">Previous question</button></div>';
-    var next = document.getElementById('next-question');
-    var prev = document.getElementById('previous-question');
-    var results = document.getElementById('quiz-results');
+    quiz.innerHTML = quiz.innerHTML + '<div class="q-quiz-footer"><button id="q-next-question" class="q-quiz-button">Next question</button><button id="q-quiz-results" class="q-quiz-button">Results</button><div class="q-progress"><span id="q-number">1</span>of<span id="q-total">10</span></div><button id="q-previous-question" class="q-quiz-button">Previous question</button></div>';
+    var next = document.getElementById('q-next-question');
+    var prev = document.getElementById('q-previous-question');
+    var results = document.getElementById('q-quiz-results');
 
     //set progress
-    document.getElementById('total').textContent = questions.length;
-    document.getElementById('number').textContent = currentQuestion + 1;
+    document.getElementById('q-total').textContent = questions.length;
+    document.getElementById('q-number').textContent = currentQuestion + 1;
 
     //show next button for first question
     next.style.display = 'block';
@@ -141,17 +161,20 @@ var createQuiz = function(quizData) {
     next.addEventListener('click', function(){
       questions[currentQuestion].style.display = "none";
       currentQuestion++;
-      document.getElementById('number').textContent = currentQuestion + 1;
+      if (typeof sendGAevents == 'function') {
+        sendGAevents('JSO Quiz', 'Progress - Next Question', currentQuestion);
+      }
+      document.getElementById('q-number').textContent = currentQuestion + 1;
       next.style.color = '';
       questions[currentQuestion].style.display = 'block';
 
       //check for existing answer
       if(loadAnswer(currentQuestion)) {
-        var opts = document.getElementsByClassName("options")[currentQuestion];
+        var opts = document.getElementsByClassName('q-options')[currentQuestion];
         var el;
         var ans = loadAnswer(currentQuestion);
-        _.each(opts.getElementsByClassName("option"), function(opt) {
-          var key = opt.getElementsByClassName('value')[0].getAttribute('data-key');
+        _.each(opts.getElementsByClassName('q-option'), function(opt) {
+          var key = opt.getElementsByClassName('q-value')[0].getAttribute('data-key');
           if (key == ans) {
             el = opt;
           }
@@ -181,16 +204,19 @@ var createQuiz = function(quizData) {
     prev.addEventListener('click', function(){
       questions[currentQuestion].style.display = "none";
       currentQuestion--;
-      document.getElementById('number').textContent = currentQuestion + 1;
+      if (typeof sendGAevents == 'function') {
+        sendGAevents('JSO Quiz', 'Progress - Previous Question', currentQuestion);
+      }
+      document.getElementById('q-number').textContent = currentQuestion + 1;
       questions[currentQuestion].style.display = 'block';
 
       //check for existing answer
       if(loadAnswer(currentQuestion)) {
-        var opts = document.getElementsByClassName("options")[currentQuestion];
+        var opts = document.getElementsByClassName('q-options')[currentQuestion];
         var el;
         var ans = loadAnswer(currentQuestion);
-        _.each(opts.getElementsByClassName("option"), function(opt) {
-          var key = opt.getElementsByClassName('value')[0].getAttribute('data-key');
+        _.each(opts.getElementsByClassName('q-option'), function(opt) {
+          var key = opt.getElementsByClassName('q-value')[0].getAttribute('data-key');
           if (key == ans) {
             el = opt;
           }
@@ -218,7 +244,7 @@ var createQuiz = function(quizData) {
     });
 
     // apply quiz functionality to each set of options
-    var options = document.getElementsByClassName('option');
+    var options = document.getElementsByClassName('q-option');
     _.each(options,function(option) {
 
       //add click event to each option
@@ -228,14 +254,14 @@ var createQuiz = function(quizData) {
     });
 
     //display first question
-    quiz.getElementsByClassName('questions')[0].style.display = 'block';
+    quiz.getElementsByClassName('q-questions')[0].style.display = 'block';
 
     if(loadAnswer(currentQuestion)) {
-      var opts = document.getElementsByClassName("options")[currentQuestion];
+      var opts = document.getElementsByClassName('q-options')[currentQuestion];
       var el;
       var ans = loadAnswer(currentQuestion);
-      _.each(opts.getElementsByClassName("option"), function(opt) {
-        var key = opt.getElementsByClassName('value')[0].getAttribute('data-key');
+      _.each(opts.getElementsByClassName('q-option'), function(opt) {
+        var key = opt.getElementsByClassName('q-value')[0].getAttribute('data-key');
         if (key == ans) {
           el = opt;
         }
@@ -254,26 +280,27 @@ var createQuiz = function(quizData) {
 // pre-compiled questions template
 //
 this["JST"] = this["JST"] || {};
+
 this["JST"]["generateQuestion"] = function(obj) {
 obj || (obj = {});
 var __t, __p = '', __e = _.escape, __j = Array.prototype.join;
 function print() { __p += __j.call(arguments, '') }
 with (obj) {
-__p += '<div class="questions">\n  <div class="main">\n    <h5 class="question">' +
+__p += '<div class="q-questions">\n  <div class="q-main">\n    <h5 class="q-question">' +
 ((__t = ( question )) == null ? '' : __t) +
-'</h5>\n    <ul class="options">\n      ';
+'</h5>\n    <ul class="q-options">\n      ';
  _.each(options, function(value, key){ ;
-__p += '\n        <li class="option';
- if(key == answer) print(' correct') ;
-__p += '">\n          <span class="value" data-key="' +
+__p += '\n        <li class="q-option';
+ if(key == answer) print(' q-correct') ;
+__p += '">\n          <span class="q-value" data-key="' +
 ((__t = ( key )) == null ? '' : __t) +
 '">' +
 ((__t = ( value )) == null ? '' : __t) +
 '</span>\n        </li>\n      ';
  }) ;
 __p += '\n    </ul>\n  </div>\n  ';
- if(imgsrc !== '') { ;
-__p += '\n    <div class="meta">\n      ';
+ if(imgsrc !== '' || answerDetails !== '') { ;
+__p += '\n    <div class="q-meta">\n      ';
  if(imgsrc !== '') { ;
 __p += '\n        <img src="' +
 ((__t = ( imgsrc )) == null ? '' : __t) +
@@ -282,12 +309,16 @@ __p += '\n        <img src="' +
 '>\n      ';
  } ;
 __p += '\n      ';
- if(articleUrl !== '') { ;
-__p += '\n        <div class="answer-details">\n          ' +
+ if(articleUrl !== '' || answerDetails !== '') { ;
+__p += '\n        <div class="q-answer-details">\n          ' +
 ((__t = ( answerDetails )) == null ? '' : __t) +
-'\n          <a target="_blank" href="' +
+'\n          ';
+ if(articleUrl !== '') { ;
+__p += '\n          <a target="_blank" href="' +
 ((__t = ( articleUrl )) == null ? '' : __t) +
-'">Read more</a>\n        </div>\n      ';
+'">Read more</a>\n          ';
+ } ;
+__p += '\n        </div>\n      ';
  } ;
 __p += '\n    </div>\n  ';
  } ;

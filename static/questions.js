@@ -10,7 +10,8 @@ var temp1 = {
   answer: 1,
   cid: "291522811",
   answerDetails: "The Milwaukee Brewers didn't make it to spring training before suffering their first injury of 2015. The team announced Wednesday morning that catcher Jonathan Lucroy, one of the key players on the club, is expected to be sidelined four to six...",
-  imgsrc: "http://media.jsonline.com/images/38106706-mjs_477588083hh00007_milwaukee_.jpg",
+  //imgsrc: "http://media.jsonline.com/images/38106706-mjs_477588083hh00007_milwaukee_.jpg",
+  imgsrc: '',
   hidePhoto: false,
   articleUrl: "http://www.jsonline.com/blogs/sports/291522811.html"
 };

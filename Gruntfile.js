@@ -5,7 +5,7 @@ module.exports = function(grunt) {
         options: {
         },
         files: {
-          "templates.js": ["questions-template.tpl"]
+          "static/templates.js": ["static/questions-template.tpl"]
         }
       }
     }

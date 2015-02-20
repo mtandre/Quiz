@@ -154,25 +154,25 @@
               <span class="input-group-addon">
                 <input type="radio" name="question<%= number %>" data-item="answer1check" <%= question.answer === 0 ? "checked=checked" : "" %>>
               </span>
-              <input type="text" class="form-control" placeholder="Required" data-item="answer1" value="<%= question.options[0] %>">
+              <input type="text" class="form-control" placeholder="Required" data-item="answer1" value='<%= question.options[0] %>'>
             </div>
             <div class="input-group">
               <span class="input-group-addon">
                 <input type="radio" name="question<%= number %>" data-item="answer2check"  <%= question.answer === 1 ? "checked=checked" : "" %>>
               </span>
-              <input type="text" class="form-control" placeholder="Required" data-item="answer2" value="<%= question.options[1] %>">
+              <input type="text" class="form-control" placeholder="Required" data-item="answer2" value='<%= question.options[1] %>'>
             </div>
             <div class="input-group">
               <span class="input-group-addon">
                 <input type="radio" name="question<%= number %>" data-item="answer3check"  <%= question.answer === 2 ? "checked=checked" : "" %>>
               </span>
-              <input type="text" class="form-control" placeholder="Optional" data-item="answer3" value="<%= question.options[2] %>">
+              <input type="text" class="form-control" placeholder="Optional" data-item="answer3" value='<%= question.options[2] %>'>
             </div>
             <div class="input-group">
               <span class="input-group-addon">
                 <input type="radio" name="question<%= number %>" data-item="answer4check" <%= question.answer === 3 ? "checked=checked" : "" %>>
               </span>
-              <input type="text" class="form-control" placeholder="Optional" data-item="answer4" value="<%= question.options[3] %>">
+              <input type="text" class="form-control" placeholder="Optional" data-item="answer4" value='<%= question.options[3] %>'>
             </div>
           </form>
         </div>
@@ -413,8 +413,6 @@
 
         $('.import-modal').modal('hide');
       }
-
-
     </script>
   </body>
 </html>
