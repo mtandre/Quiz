@@ -86,7 +86,7 @@ var createQuiz = function(quizData) {
     var styles = document.createElement('link')
     styles.type = 'text/css'
     styles.rel = 'stylesheet'
-    styles.href = 'http://graphics.jsonline.com/jsi_news/javascripts/quiz/jso-quiz.css?v=20';
+    styles.href = 'http://graphics.jsonline.com/jsi_news/javascripts/quiz/jso-quiz.css?v=19';
     document.head.appendChild(styles);
   }
 
@@ -95,9 +95,10 @@ var createQuiz = function(quizData) {
     if (typeof sendGAevents == 'function') {
       sendGAevents('JSO Quiz', 'Results - # Correct', correct);
     }
-    var facebook = '<a href="https://www.facebook.com/sharer/sharer.php?u=' + window.location.origin + window.location.pathname + '?qs=fb&title=I+scored+' + correct + '/' + questions.length + '+on+the+JSOnline.com+News+Quiz." onclick="if(typeof sendGAevents == \'function\') {sendGAevents(\'JSO Quiz\', \'Results - Facebook Share\', ' + correct + ');};"><button class="q-quiz-button q-shareBtn q-facebook">facebook</button></a>';
-    var twitter = '<a href="http://twitter.com/share?url=' + window.location.origin + window.location.pathname + '?qs=fb&text=I+scored+' + correct + '/' + questions.length + '+on+the+JSOnline.com+News+Quiz." onclick="if(typeof sendGAevents == \'function\') {sendGAevents(\'JSO Quiz\', \'Results - Twitter Share\', ' + correct + ');};"><button class="q-quiz-button q-shareBtn q-twitter">Twitter</button></a>';
-    var score = '<div class="q-quiz-overlay"></div><div class="q-results-overlay"><p><span>You got ' + correct + ' of ' + questions.length + ' questions correct.</span><br><button id="q-quiz-close" class="q-quiz-button">Review quiz</button><button id="q-quiz-reset" class="q-quiz-button">Retake quiz</button><br><span>Share and challenge your friends</span><br>' + facebook + twitter + '</p></div>';
+    var facebook = '<a href="https://www.facebook.com/sharer/sharer.php?u=' + window.location.origin + window.location.pathname + '?qs=fb" onclick="if(typeof sendGAevents == \'function\') {sendGAevents(\'JSO Quiz\', \'Results - Facebook Share\', ' + correct + ');};"><button class="q-quiz-button q-shareBtn q-facebook">facebook</button></a>';
+    var twitter = '<a href="http://twitter.com/share?url=' + window.location.origin + window.location.pathname + '?qs=tw&text=I+scored+' + correct + '/' + questions.length + '+on+the+JSOnline.com+News+Quiz." onclick="if(typeof sendGAevents == \'function\') {sendGAevents(\'JSO Quiz\', \'Results - Twitter Share\', ' + correct + ');};"><button class="q-quiz-button q-shareBtn q-twitter">Twitter</button></a>';
+    var email = '<a href="mailto:?body=I%20scored%20' + correct + '/' + questions.length + '%20on%20the%20JSOnline.com%20News%20Quiz.%0D%0A' + window.location.origin + window.location.pathname + '?qs=em" onclick="if(typeof sendGAevents == \'function\') {sendGAevents(\'JSO Quiz\', \'Results - Email Share\', ' + correct + ');};"><button class="q-quiz-button q-shareBtn q-email">Email</button></a>';
+    var score = '<div class="q-quiz-overlay"></div><div class="q-results-overlay"><p><span>You got ' + correct + ' of ' + questions.length + ' questions correct.</span><br><button id="q-quiz-close" class="q-quiz-button">Review quiz</button><button id="q-quiz-reset" class="q-quiz-button">Retake quiz</button><br><span>Share and challenge your friends</span><br>' + facebook + email + twitter + '</p></div>';
     var wrap = document.createElement('div');
     wrap.innerHTML = score;
     var cores = wrap.childNodes;

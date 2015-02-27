@@ -28,6 +28,7 @@
 #quiz .q-results-overlay a {text-decoration:none;}
 #quiz .q-facebook {background:#3b5999 !important; margin:1rem; color:#fff;}
 #quiz .q-twitter {background:#55acee !important; margin:1rem; color:#fff;}
+#quiz .q-email {background:#17b248 !important; margin:1rem; color:#fff;}
 @media (max-width: 480px) {
   #quiz .q-main {float: none; width:100%; border-right:none; margin-right:0; padding-right:0;}
   #quiz .q-meta {float: none; width:100%; border-left:0; border-top:1px solid #ccc; padding:0.75rem 0;}
