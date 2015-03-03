@@ -19,7 +19,9 @@
 #quiz .q-option:hover {cursor:pointer;}
 #quiz .q-answered .q-option:hover {cursor:default;}
 #quiz .q-answered .q-correct {transition:background-color 0.7s; background:#17b248 !important; color:#fff;}
+#quiz .q-answered .q-correct:before {content:"\2713\0020"; margin-right:0.1rem; font-weight:bold;}
 #quiz .q-answered .q-incorrect {transition:background-color 0s; background:#b50300 !important; color:#fff;}
+#quiz .q-answered .q-incorrect:before {content:"\2718\0020"; margin-right:0.1rem;}
 #quiz .q-quiz-footer {overflow-y:auto; background:#eee; position:relative; text-align:center; border-top:1px solid #ddd; margin:0 -0.75rem -0.75rem -0.75rem; padding:0.75rem; font-family:Verdana, Arial, Helvetica, sans-serif;}
 #quiz .q-quiz-overlay {position:absolute; top:0; width:100%; height:100%; left:0; z-index:3; background:#ccc; opacity:0.95;}
 #quiz .q-results-overlay {position:absolute; top:0; width:100%; height:100%; left:0; z-index:4; text-align:center;}

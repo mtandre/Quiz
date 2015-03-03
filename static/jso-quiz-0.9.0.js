@@ -86,7 +86,8 @@ var createQuiz = function(quizData) {
     var styles = document.createElement('link')
     styles.type = 'text/css'
     styles.rel = 'stylesheet'
-    styles.href = 'http://graphics.jsonline.com/jsi_news/javascripts/quiz/jso-quiz.css?v=19';
+    //styles.href = 'http://graphics.jsonline.com/jsi_news/javascripts/quiz/jso-quiz.css?v=19';
+    styles.href = 'jso-quiz.css';
     document.head.appendChild(styles);
   }
 
