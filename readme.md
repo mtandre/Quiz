@@ -1,4 +1,10 @@
-## how to compile templates
+####launch
+```
+node index
+```
+* editor: /new
+
+####compile templates
 ```
 grunt jst
 ```
