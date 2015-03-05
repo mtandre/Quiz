@@ -46,10 +46,10 @@
           <div class="panel panel-default">
             <div class="panel-heading" style="overflow-y:auto;">
               Copy and paste the output below into the "Content with JS" field of a JSO General Page or script module.
+              <button type="button" class="btn btn-primary pull-right btn-xs" data-toggle="modal" data-target=".preview-modal" onclick="preview();">Preview</button>
             </div>
             <div class="panel-body">
               <pre id="output">Click "Generate quiz" to create embed code.</pre>
-              <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".preview-modal" onclick="preview();">Preview</button>
             </div>
           </div>
       </div>
@@ -64,10 +64,11 @@
     <div class="modal fade import-modal" tabindex="-1" role="dialog">
       <div class="modal-dialog modal-lg">
         <div class="modal-content" style="padding:20px;">
-            <p class="lead" style="border-bottom: 1px solid #eee;">Quiz Importer</p>
+          <p class="lead" style="border-bottom: 1px solid #eee;">Quiz Importer</p>
           <textarea class="form-control" rows="5" id="pasted-code" placeholder="Paste existing embed code here..." ></textarea>
           <button type="button" class="btn btn-success" onclick="parseEmbedCode();" style="margin-top:10px;">Import</button>
-        </div>
+          <p class="lead" style="border-bottom: 1px solid #eee; margin-top:10px;">Autosaves<button class="btn pull-right btn-xs btn-warning" onclick="clearSaves();">Clear Autosaves</button></p>
+      </div>
       </div>
     </div>
     <!--
@@ -227,10 +228,17 @@
         });
       };
 
+      $(document).ready(function() {
+          loadSaves();
+          $(document).on('focusout','input, textarea',function(){
+            saveQuizThrottle();
+          });
+      });
       //create first question
       createQuestion(questionNumber);
 
       $('.addQuestion').on('click', function() {
+        saveQuiz();
         questionNumber++;
         createQuestion(questionNumber);
         if($('#output').text().length > 50) {
@@ -240,11 +248,38 @@
 
       $('.generateQuiz').on('click', function() {
         $('#output').text(compileEmbedCode());
+        saveQuiz();
+        selectText('output');
         removeMsg(1);
       });
 
+      var saveQuiz = function() {
+        console.log('saving');
+        var output = generateQuizObject(true);
+        var now = new Date();
+        var ts = now.getMonth() + "/" + now.getDate() + "/" + now.getFullYear() + " version " + now.getHours();
+        localStorage.setItem('Quiz Autosave: ' + ts,JSON.stringify(output));
+      }
+
+      var saveQuizThrottle = _.debounce(saveQuiz, 1000);
+
+      function loadSaves(){
+        var html = '';
+        for ( var i = 0, len = localStorage.length; i < len; ++i ) {
+          var key = localStorage.key(i);
+          html += '<li><a onclick="parseEmbedCode(localStorage.getItem(\'' + key + '\'))">Load ' + key + '</a></li>';
+        }
+        $(".import-modal .modal-content").append('<ul class="autosaves">' + html + '</ul>');
+      }
+
+      function clearSaves(){
+        localStorage.clear();
+        $('.import-modal').modal('hide');
+        $('.autosaves').remove();
+      }
+
       function compileEmbedCode() {
-        var output = generateQuizObject();
+        var output = generateQuizObject(false);
         var outputStr = JSON.stringify(output);
         var varName = "questionData";
         var scriptUrl = "http://graphics.jsonline.com/jsi_news/javascripts/quiz/jso-quiz-0.9.0.js?v=1";
@@ -297,8 +332,10 @@
           $('.' + contentVarName + ' .content .thumbnail input[data-item=articleUrl').val(tempData.url);
       }
 
-      function generateQuizObject() {
-        removeMsg("all");
+      function generateQuizObject(noWarnings) {
+        if (!noWarnings) {
+          removeMsg("all");
+        }
         try {
           var questions = document.getElementsByClassName("question");
 
@@ -311,12 +348,16 @@
             var questionText = $(q).find("input[data-item=question]").val() || "";
             tempObj["question"] = questionText;
             if (!tempObj["question"] || tempObj["question"] === "") {
-              addMsg("Question " + qNum + ": Question field cannot be blank.");
+              if (!noWarnings) {
+                addMsg("Question " + qNum + ": Question field cannot be blank.");
+              }
             }
 
             var options = $(q).find(".col-md-8 form .input-group");
             if (!options || options.length < 2) {
-              addMsg("Question " + qNum + ": Minimum of 2 answers required.");
+              if (!noWarnings) {
+                addMsg("Question " + qNum + ": Minimum of 2 answers required.");
+              }
             }
 
             var tempOptionsObj = {};
@@ -325,7 +366,9 @@
               var answerText = $(option).find("input[type=text]").val();
 
               if ((!answerText || answerText === "") && index < 2) {
-                addMsg("Question " + qNum + ": Answer " + (index+1) + " cannot be blank.");
+                if (!noWarnings) {
+                  addMsg("Question " + qNum + ": Answer " + (index+1) + " cannot be blank.");
+                }
               }
 
               if (index > 1) {
@@ -351,7 +394,9 @@
 
             tempObj["answer"] = answerNumber;
             if (answerNumber < 0 || answerNumber > 3){
-              addMsg("Question " + qNum + ": Please check a valid answer.");
+              if (!noWarnings) {
+                addMsg("Question " + qNum + ": Please check a valid answer.");
+              }
             }
 
             var cid = $(q).find("input[data-item=contentId]").val() || "";
@@ -373,7 +418,7 @@
           });
           return questionsArray;
         } catch (err) {
-          addMsg("Data generation Error. Please check each field for unfriendly characters. Error Message: " + err);
+          addMsg("Data generation Error. Please check each field for unusual characters. Error Message: " + err);
         }
       }
 
@@ -398,9 +443,13 @@
         ifrm.document.close();
       }
 
-      function parseEmbedCode() {
-        var input = $("#pasted-code").val();
-        var qArray = input.match(/\[(.*?)\]/g);
+      function parseEmbedCode(input) {
+        if(input === ""){
+          var code = $("#pasted-code").val();
+        } else {
+          code = input;
+        }
+        var qArray = code.match(/\[(.*?)\]/g);
         var obj = JSON.parse(qArray[0]);
 
         questionNumber = 0;
@@ -412,6 +461,21 @@
         });
 
         $('.import-modal').modal('hide');
+      }
+
+      function selectText(element) {
+        var text = document.getElementById(element);
+        if (document.body.createTextRange) { // ms
+            var range = document.body.createTextRange();
+            range.moveToElementText(text);
+            range.select();
+        } else if (window.getSelection) { // moz, opera, webkit
+            var selection = window.getSelection();
+            var range = document.createRange();
+            range.selectNodeContents(text);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
       }
     </script>
   </body>
