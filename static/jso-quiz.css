@@ -31,9 +31,15 @@
 #quiz .q-facebook {background:#3b5999 !important; margin:1rem; color:#fff;}
 #quiz .q-twitter {background:#55acee !important; margin:1rem; color:#fff;}
 #quiz .q-email {background:#17b248 !important; margin:1rem; color:#fff;}
+#quiz .q-sm {display:none;}
+#quiz .q-lg {display:inline;}
 @media (max-width: 480px) {
   #quiz .q-main {float: none; width:100%; border-right:none; margin-right:0; padding-right:0;}
   #quiz .q-meta {float: none; width:100%; border-left:0; border-top:1px solid #ccc; padding:0.75rem 0;}
-  #quiz .q-options {margin-left:0;}
-  #quiz #q-previous-question, #quiz #q-next-question, #quiz #q-quiz-results {position:initial; width:100%;}
+  #quiz .q-meta img {float:left; width:30%; margin-right:0.5rem; padding-bottom:0.1rem;}
+  #quiz .q-options {margin-left:0; padding:0.35rem 0;}
+  /* #quiz #q-previous-question, #quiz #q-next-question, #quiz #q-quiz-results {position:initial; width:100%;} */
+  #quiz #q-quiz-results {line-height:1.25rem; padding-left:0.5rem; padding-right:0.5rem;}
+  #quiz .q-sm {display:inline; font-size:1.25rem; line-height:1rem;}
+  #quiz .q-lg {display:none;}
 }
