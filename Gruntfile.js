@@ -3,9 +3,10 @@ module.exports = function(grunt) {
     jst: {
       compile: {
         options: {
+          //prettify: true
         },
         files: {
-          "static/templates.js": ["static/questions-template.tpl"]
+          "static/templates.js": ["templates/question.tpl","templates/footer.tpl","templates/results.tpl"]
         }
       }
     }
