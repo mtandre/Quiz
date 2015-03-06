@@ -148,7 +148,7 @@
           <form>
             <div class="form-group">
               <label for="question<%= number %>">Question <%= number %></label>
-              <input type="text" class="form-control" id="question<%= number %>" placeholder="Question" data-item="question" value="<%= question.question %>">
+              <input type="text" class="form-control" id="question<%= number %>" placeholder="Question" data-item="question" value='<%= question.question %>'>
             </div>
             <p><strong>Answers</strong></p>
             <div class="input-group">
@@ -183,7 +183,7 @@
             <form class="form-inline">
               <div class="form-group">
                 <div class="input-group">
-                  <input type="text" class="form-control" id="contentId<%= number %>" placeholder="Clickability ID" data-item="contentId" value="<%= question.cid %>">
+                  <input type="text" class="form-control" id="contentId<%= number %>" placeholder="Clickability ID" data-item="contentId" value='<%= question.cid %>'>
                 </div>
               </div>
               <div class="btn btn-primary" id="contentId<%= number %>prefill" onclick="getContent($('#contentId<%= number %>').val(),<%= number %>)">Prefill</div>
@@ -198,12 +198,12 @@
           <div class="thumbnail">
               <img src="<%= question.imgsrc %>" alt="No Image" >
               <div class="caption">
-              <input type="text" class="form-control" placeholder="Related image source" data-item="imageUrl" value="<%= question.imgsrc %>">
+              <input type="text" class="form-control" placeholder="Related image source" data-item="imageUrl" value='<%= question.imgsrc %>'>
               <textarea class="form-control" rows="8" data-item="answerDetails" placeholder="No content found. Double-check Clickability ID or manually enter related text."><%= question.answerDetails %></textarea>
               <% if (question.articleUrl) { %>
                 <a href="<%= question.articleUrl %>" target="_blank">Link</a>
               <% } %>
-                <input type="text" class="form-control" placeholder="Related link url" data-item="articleUrl" value="<%= question.articleUrl %>">
+                <input type="text" class="form-control" placeholder="Related link url" data-item="articleUrl" value='<%= question.articleUrl %>'>
             </div>
           </div>
         </div>
@@ -457,6 +457,8 @@
 
         _.each(obj, function(q, index) {
           questionNumber++;
+          console.log(q.question);
+          console.log(q.options[0]);
           $('#questions').append(filledQuestionTemplate({number: questionNumber, question: q}));
         });
 

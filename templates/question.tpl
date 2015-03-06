@@ -12,13 +12,13 @@
   <% if(question.imgsrc !== '' || question.answerDetails !== '') { %>
     <div class="q-meta">
       <% if(question.imgsrc !== '') { %>
-        <img src="<%= question.imgsrc %>" <%= question.hidePhoto ? 'style="opacity:0;"' : ''%>>
+        <img src='<%= question.imgsrc %>' <%= question.hidePhoto ? 'style="opacity:0;"' : ''%>>
       <% } %>
       <% if(question.articleUrl !== '' || question.answerDetails !== '') { %>
         <div class="q-answer-details">
           <%= question.answerDetails %>
           <% if(question.articleUrl !== '') { %>
-          <a target="_blank" onclick="if(typeof sendGAevents == 'function') {sendGAevents('JSO Quiz', 'Read More', '<%= (index+1) %>');};" href="<%= question.articleUrl %>">Read more</a>
+          <a target="_blank" onclick="if(typeof sendGAevents == 'function') {sendGAevents('JSO Quiz', 'Read More', '<%= (index+1) %>');};" href='<%= question.articleUrl %>'>Read more</a>
           <% } %>
         </div>
       <% } %>
