@@ -2,7 +2,8 @@
 ```
 node index
 ```
-* editor: /new
+* demo: /
+* builder: /new
 
 ####compile templates
 ```
